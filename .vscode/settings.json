@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./smart-door-system/services"
+    ]
+}
