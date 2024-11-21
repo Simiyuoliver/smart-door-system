@@ -1,57 +1,50 @@
-# In services/face_recognition.py
 import cv2
 import face_recognition
 import os
 import numpy as np
+import logging
 
-def recognize_face(image_path):
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+def load_and_encode_image(image_path):
+    """Load an image and return its face encoding."""
+    image_bgr = cv2.imread(image_path)
+    if image_bgr is None:
+        logging.error(f"Failed to load image at {image_path}")
+        return None
+    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+    encodings = face_recognition.face_encodings(image_rgb)
+    return encodings[0] if encodings else None
+
+def recognize_face(image_path, known_faces_dir):
     """
     Recognizes faces in the given image.
 
     Args:
         image_path (str): Path to the visitor's image.
+        known_faces_dir (str): Directory containing known face images.
 
     Returns:
         list: List containing recognized face data, such as category and similarity.
     """
-    # Load the visitor image using OpenCV
-    visitor_image_bgr = cv2.imread(image_path)
-    if visitor_image_bgr is None:
-        # Image not found or cannot be read
-        print(f"Failed to load image at {image_path}")
-        return None
-    # Convert the image from BGR to RGB
-    visitor_image = cv2.cvtColor(visitor_image_bgr, cv2.COLOR_BGR2RGB)
-    visitor_encoding = face_recognition.face_encodings(visitor_image)
-
-    if not visitor_encoding:
-        # No face found in the visitor image
+    visitor_encoding = load_and_encode_image(image_path)
+    if visitor_encoding is None:
         return None
 
-    visitor_encoding = visitor_encoding[0]  # Assume one face in the image
     results = []
 
     # Compare against known faces
-    for known_face_name in os.listdir(KNOWN_FACES_DIR):
-        known_face_path = os.path.join(KNOWN_FACES_DIR, known_face_name)
-        # Load known image using OpenCV
-        known_image_bgr = cv2.imread(known_face_path)
-        if known_image_bgr is None:
-            print(f"Failed to load known image at {known_face_path}")
-            continue  # Skip if image cannot be read
-        # Convert the image from BGR to RGB
-        known_image = cv2.cvtColor(known_image_bgr, cv2.COLOR_BGR2RGB)
-        known_encoding = face_recognition.face_encodings(known_image)
+    for known_face_name in os.listdir(known_faces_dir):
+        known_face_path = os.path.join(known_faces_dir, known_face_name)
+        known_encoding = load_and_encode_image(known_face_path)
         
-        if known_encoding:
-            known_encoding = known_encoding[0]
-            # Calculate face distance
+        if known_encoding is not None:
             distance = face_recognition.face_distance([known_encoding], visitor_encoding)[0]
-            similarity = max(0, int((1 - distance) * 100))  # Convert to similarity percentage
+            similarity = max(0, int((1 - distance) * 100))
             results.append({
                 "FaceId": os.path.splitext(known_face_name)[0],
                 "Similarity": similarity
             })
 
-    # Return the most similar face (if any)
     return sorted(results, key=lambda x: x['Similarity'], reverse=True) if results else None
