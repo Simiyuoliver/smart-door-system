@@ -9,9 +9,9 @@ Access Control: Opens the door if the visitor is recognized with high confidence
 Visitor Logging: Logs visitor information to Firebase.
 Notifications: Sends notifications about access attempts.
 
-## Prerequisites
+# Prerequisites
 
-# Python 3.6 or higher
+## Python 3.6 or higher
 
 **Firebase**
 **AWS**

@@ -1,8 +1,8 @@
+# In services/face_recognition.py
+import cv2
 import face_recognition
 import os
-
-# Directory where known face images are stored
-KNOWN_FACES_DIR = "static/known_faces"
+import numpy as np
 
 def recognize_face(image_path):
     """
@@ -14,8 +14,14 @@ def recognize_face(image_path):
     Returns:
         list: List containing recognized face data, such as category and similarity.
     """
-    # Load the visitor image
-    visitor_image = face_recognition.load_image_file(image_path)
+    # Load the visitor image using OpenCV
+    visitor_image_bgr = cv2.imread(image_path)
+    if visitor_image_bgr is None:
+        # Image not found or cannot be read
+        print(f"Failed to load image at {image_path}")
+        return None
+    # Convert the image from BGR to RGB
+    visitor_image = cv2.cvtColor(visitor_image_bgr, cv2.COLOR_BGR2RGB)
     visitor_encoding = face_recognition.face_encodings(visitor_image)
 
     if not visitor_encoding:
@@ -28,16 +34,22 @@ def recognize_face(image_path):
     # Compare against known faces
     for known_face_name in os.listdir(KNOWN_FACES_DIR):
         known_face_path = os.path.join(KNOWN_FACES_DIR, known_face_name)
-        known_image = face_recognition.load_image_file(known_face_path)
+        # Load known image using OpenCV
+        known_image_bgr = cv2.imread(known_face_path)
+        if known_image_bgr is None:
+            print(f"Failed to load known image at {known_face_path}")
+            continue  # Skip if image cannot be read
+        # Convert the image from BGR to RGB
+        known_image = cv2.cvtColor(known_image_bgr, cv2.COLOR_BGR2RGB)
         known_encoding = face_recognition.face_encodings(known_image)
-
+        
         if known_encoding:
             known_encoding = known_encoding[0]
             # Calculate face distance
             distance = face_recognition.face_distance([known_encoding], visitor_encoding)[0]
             similarity = max(0, int((1 - distance) * 100))  # Convert to similarity percentage
             results.append({
-                "FaceId": known_face_name.split('.')[0],
+                "FaceId": os.path.splitext(known_face_name)[0],
                 "Similarity": similarity
             })
 
