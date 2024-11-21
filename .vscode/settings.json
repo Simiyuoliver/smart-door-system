@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
         "./smart-door-system/services"
-    ]
+    ],
+    "codium.codeCompletion.enable": true
 }
