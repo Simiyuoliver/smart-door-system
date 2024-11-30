@@ -30,7 +30,7 @@ CMake
 dlib
 
   - **Installation**
-    git clone https://github.com/yourusername/smart-door-system.git
+    git clone https://github.com/oliversimiyu/smart-door-system.git
     cd smart-door-system
     - **Set up a virtual environment**:
       ```bash
